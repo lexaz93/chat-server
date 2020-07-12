@@ -27,7 +27,6 @@ public class ClientRunnable implements Runnable, Observer {
 
         messageFromUser = serverMessageReceiver.readMessage();
         if (messageFromUser.contains("Registration")) {
-            System.out.println("Registration");
             client = new User(messageFromUser.split(" ")[1], messageFromUser.split(" ")[2]);
             System.out.println("Registration for " + client.getName() + " success");
             notifyObserver("Registration successful");
