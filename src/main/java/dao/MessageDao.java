@@ -7,5 +7,5 @@ public interface MessageDao {
 
     void writeMessage(Message message);
     Message readMessage(String text);
-    StringBuffer readMessage(User name);
+    StringBuilder readMessage(User name);
 }
