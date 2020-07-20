@@ -38,7 +38,7 @@ public class ClientRunnable implements Runnable, Observer {
         if (!clientSocket.isClosed()) {
             do {
                 System.out.println(messageFromUser);
-                server.notifyObservers(messageFromUser);
+                server.notifyObservers(client.getName() + ":\n" + messageFromUser);
             } while ((messageFromUser = serverMessageReceiver.readMessage()) != null);
         }
 
