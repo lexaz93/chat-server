@@ -89,9 +89,7 @@ public class ClientRunnable implements Runnable, Observer {
     @Override
     public void notifyObserver(String message) {
         PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
-//        if (client != null) { //закомментили  чтобы приходило сообщение неверный пароль тк там мы не присваеваем к клиенту
         printWriter.println(message);
         printWriter.flush();
-//        }
     }
 }
