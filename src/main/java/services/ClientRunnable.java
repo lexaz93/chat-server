@@ -2,12 +2,12 @@ package services;
 
 import dao.UserDao;
 import dao.UserDaoImpl;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+
 import model.User;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
@@ -27,10 +27,10 @@ public class ClientRunnable implements Runnable, Observer {
 
         messageFromUser = serverMessageReceiver.readMessage();
         if (messageFromUser.contains("Registration")) {
-            System.out.println("Registration");
             client = new User(messageFromUser.split(" ")[1], messageFromUser.split(" ")[2]);
             System.out.println("Registration for " + client.getName() + " success");
             notifyObserver("Registration successful");
+            dao.createUser(client);
         } else if (messageFromUser.contains("Authorization")) {
             String loginFromClient = messageFromUser.split(" ")[1];
             String passwordFromClient = messageFromUser.split(" ")[2];
