@@ -38,7 +38,7 @@ public class ClientRunnable implements Runnable, Observer {
         if (!clientSocket.isClosed()) {
             do {
                 System.out.println(messageFromUser);
-                server.notifyObservers(client.getName() + ":\n" + messageFromUser);
+                server.notifyObservers(client.getName() + ": " + messageFromUser);
             } while ((messageFromUser = serverMessageReceiver.readMessage()) != null);
         }
 
@@ -53,7 +53,7 @@ public class ClientRunnable implements Runnable, Observer {
         if ((userFromDao = dao.findByName(loginFromClient)) != null) {
             if (userFromDao.getPassword().equals(passwordFromClient)) {
                 client = userFromDao;
-                notifyObserver("Authorization successfully");
+                notifyObserver("Authorization for " + client.getName() + " successful");
                 System.out.println("Authorization for " + client.getName() + " successful");
             } else {
                 System.out.println("Authorization for " + loginFromClient + " failed");
@@ -79,7 +79,7 @@ public class ClientRunnable implements Runnable, Observer {
         } else {
             client = new User(messageFromUser.split(" ")[1], messageFromUser.split(" ")[2]);
             System.out.println("Registration for " + client.getName() + " success");
-            notifyObserver("Registration successful");
+            notifyObserver("Registration for " + client.getName() + " success");
             dao.createUser(client);
         }
     }
