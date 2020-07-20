@@ -54,7 +54,7 @@ public class ClientRunnable implements Runnable, Observer {
             if (userFromDao.getPassword().equals(passwordFromClient)) {
                 client = userFromDao;
                 notifyObserver("Authorization successfully");
-                System.out.println("Authorization for " + client.getName() + " failed");
+                System.out.println("Authorization for " + client.getName() + " successful");
             } else {
                 System.out.println("Authorization for " + loginFromClient + " failed");
                 notifyObserver("Authorization failed: wrong password");
@@ -62,7 +62,7 @@ public class ClientRunnable implements Runnable, Observer {
                 clientSocket.close();
             }
         } else {
-            System.out.println("Authorization for " + loginFromClient + " success");
+            System.out.println("Authorization for " + loginFromClient + " failed");
             notifyObserver("Authorization failed: wrong name");
             server.deleteObserver(this);
             clientSocket.close();
