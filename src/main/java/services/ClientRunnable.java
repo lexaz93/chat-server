@@ -23,33 +23,64 @@ public class ClientRunnable implements Runnable, Observer {
     public void run() {
         server.addObserver(this);
         ServerMessageReceiver serverMessageReceiver = new ServerMessageReceiver(clientSocket.getInputStream());
-        String messageFromUser;
 
-        messageFromUser = serverMessageReceiver.readMessage();
-        if (messageFromUser.contains("Registration")) {
-            client = new User(messageFromUser.split(" ")[1], messageFromUser.split(" ")[2]);
-            System.out.println("Registration for " + client.getName() + " success");
-            notifyObserver("Registration successful");
-            dao.createUser(client);
-        } else if (messageFromUser.contains("Authorization")) {
-            String loginFromClient = messageFromUser.split(" ")[1];
-            String passwordFromClient = messageFromUser.split(" ")[2];
-
-            User userFromDao = dao.findByName(loginFromClient);
-
-            if (userFromDao.getPassword().equals(passwordFromClient)) {
-                client = userFromDao;
-                notifyObserver("Authorization successfully");
-                System.out.println("Authorization for " + client.getName() + " success");
+        String messageFromUser = "";
+        while (!clientSocket.isClosed() && (messageFromUser = serverMessageReceiver.readMessage()) != null) {
+            if (messageFromUser.contains("Registration")) {
+                registration(messageFromUser);
+            } else if (messageFromUser.contains("Authorization")) {
+                authorization(messageFromUser);
             } else {
-                notifyObserver("Authorization wrong password");
-                System.out.println("Authorization wrong password");
+                break;
             }
         }
 
-        while ((messageFromUser = serverMessageReceiver.readMessage()) != null) {
+        if (!clientSocket.isClosed()) {
+            do {
                 System.out.println(messageFromUser);
-                server.notifyObservers(messageFromUser);
+                server.notifyObservers(client.getName() + ": " + messageFromUser);
+            } while ((messageFromUser = serverMessageReceiver.readMessage()) != null);
+        }
+
+    }
+
+    @SneakyThrows
+    private void authorization(String messageFromUser) {
+        String loginFromClient = messageFromUser.split(" ")[1];
+        String passwordFromClient = messageFromUser.split(" ")[2];
+
+        User userFromDao;
+        if ((userFromDao = dao.findByName(loginFromClient)) != null) {
+            if (userFromDao.getPassword().equals(passwordFromClient)) {
+                client = userFromDao;
+                notifyObserver("Authorization for " + client.getName() + " successful");
+                System.out.println("Authorization for " + client.getName() + " successful");
+            } else {
+                System.out.println("Authorization for " + loginFromClient + " failed");
+                notifyObserver("Authorization failed: wrong password");
+                server.deleteObserver(this);
+                clientSocket.close();
+            }
+        } else {
+            System.out.println("Authorization for " + loginFromClient + " failed");
+            notifyObserver("Authorization failed: wrong name");
+            server.deleteObserver(this);
+            clientSocket.close();
+        }
+    }
+
+    @SneakyThrows
+    private void registration(String messageFromUser) {
+        if (dao.findByName(messageFromUser.split(" ")[1]) != null) {
+            System.out.println("Registration for " + messageFromUser.split(" ")[1] + " failed");
+            notifyObserver("Registration failed: wrong name");
+            server.deleteObserver(this);
+            clientSocket.close();
+        } else {
+            client = new User(messageFromUser.split(" ")[1], messageFromUser.split(" ")[2]);
+            System.out.println("Registration for " + client.getName() + " success");
+            notifyObserver("Registration for " + client.getName() + " success");
+            dao.createUser(client);
         }
     }
 
@@ -58,9 +89,7 @@ public class ClientRunnable implements Runnable, Observer {
     @Override
     public void notifyObserver(String message) {
         PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
-//        if (client != null) { //закомментили  чтобы приходило сообщение неверный пароль тк там мы не присваеваем к клиенту
         printWriter.println(message);
         printWriter.flush();
-//        }
     }
 }
