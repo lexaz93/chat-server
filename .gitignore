@@ -2,3 +2,4 @@
 /target/
 /.idea/
 /chat-server.iml
+/resourses/application.properties
