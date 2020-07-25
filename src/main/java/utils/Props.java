@@ -5,7 +5,7 @@ import java.util.Properties;
 
 public class Props {
     private static Properties properties;
-    public static final String SETTINGS = "/resources/application.properties";
+    public static final String SETTINGS = "/application.properties";
 
     static {
         properties = new Properties();

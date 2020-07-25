@@ -16,6 +16,6 @@ public class MyApp {
 //            e.printStackTrace();
 //        }
 //
-//        System.out.println(props.getProperty("user"));
+//        System.out.println(props.getProperty("db.url"));
     }
 }
