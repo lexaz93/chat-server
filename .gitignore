@@ -1,3 +1,4 @@
 /.idea/
 /src/main/resources/application.properties
 /chat-server.iml
+/target/
