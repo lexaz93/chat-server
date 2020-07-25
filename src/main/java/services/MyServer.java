@@ -27,6 +27,7 @@ public class MyServer implements Observable {
 
             if (socket != null) {
                 new Thread(new ClientRunnable(socket, this)).start();
+                log.debug("Socket created!");
             }
         }
     }
