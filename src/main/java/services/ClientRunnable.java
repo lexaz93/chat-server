@@ -1,22 +1,30 @@
 package services;
 
+import dao.MessageDao;
+import dao.MessageDaoImpl;
 import dao.UserDao;
 import dao.UserDaoImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+import model.Message;
 import model.User;
 
 import java.io.PrintWriter;
 import java.net.Socket;
+
+import static services.MyServer.LOGGER;
+import static services.MyServer.RESOURCE_BUNDLE;
 
 @RequiredArgsConstructor
 public class ClientRunnable implements Runnable, Observer {
     private final Socket clientSocket;
     private final MyServer server;
     private User client;
+    private Message message;
     private final UserDao dao = new UserDaoImpl();
+    private final MessageDao messageDao = new MessageDaoImpl();
 
     @SneakyThrows
     @Override
@@ -30,6 +38,8 @@ public class ClientRunnable implements Runnable, Observer {
                 registration(messageFromUser);
             } else if (messageFromUser.contains("Authorization")) {
                 authorization(messageFromUser);
+                server.notifyObservers(client.getName() + " " + RESOURCE_BUNDLE.getValue("story") + ":\n" + messageDao.readMessage(client).toString());
+//                server.notifyObservers(client.getName() + " story:\n" + messageDao.readMessage(client).toString());
             } else {
                 break;
             }
@@ -39,6 +49,8 @@ public class ClientRunnable implements Runnable, Observer {
             do {
                 System.out.println(messageFromUser);
                 server.notifyObservers(client.getName() + ": " + messageFromUser);
+                message = new Message(messageFromUser, client);
+                messageDao.writeMessage(message);
             } while ((messageFromUser = serverMessageReceiver.readMessage()) != null);
         }
 
@@ -53,17 +65,26 @@ public class ClientRunnable implements Runnable, Observer {
         if ((userFromDao = dao.findByName(loginFromClient)) != null) {
             if (userFromDao.getPassword().equals(passwordFromClient)) {
                 client = userFromDao;
-                notifyObserver("Authorization for " + client.getName() + " successful");
-                System.out.println("Authorization for " + client.getName() + " successful");
+                notifyObserver(RESOURCE_BUNDLE.getValue("authorizaition_for") + " " + client.getName() + " " + RESOURCE_BUNDLE.getValue("successful"));
+//                notifyObserver("Authorization for " + client.getName() + " successful");
+                System.out.println(RESOURCE_BUNDLE.getValue("authorizaition_for") + " " + client.getName() + " " + RESOURCE_BUNDLE.getValue("successful"));
+                LOGGER.info("Authorization for " + client.getName() + " success");
+//                System.out.println("Authorization for " + client.getName() + " successful");
             } else {
-                System.out.println("Authorization for " + loginFromClient + " failed");
-                notifyObserver("Authorization failed: wrong password");
+                System.out.println(RESOURCE_BUNDLE.getValue("authorizaition_for") + " " + loginFromClient + " " + RESOURCE_BUNDLE.getValue("failed"));
+//                System.out.println("Authorization for " + loginFromClient + " failed");
+                notifyObserver(RESOURCE_BUNDLE.getValue("auth_f_w_p"));
+                LOGGER.warn("Authorization failed: wrong password");
+//                notifyObserver("Authorization failed: wrong password");
                 server.deleteObserver(this);
                 clientSocket.close();
             }
         } else {
-            System.out.println("Authorization for " + loginFromClient + " failed");
-            notifyObserver("Authorization failed: wrong name");
+            System.out.println(RESOURCE_BUNDLE.getValue("authorizaition_for") + " " + loginFromClient + " " + RESOURCE_BUNDLE.getValue("failed"));
+//            System.out.println("Authorization for " + loginFromClient + " failed");
+            notifyObserver(RESOURCE_BUNDLE.getValue("auth_f_w_n"));
+            LOGGER.warn("Authorization failed: wrong name");
+//            notifyObserver("Authorization failed: wrong name");
             server.deleteObserver(this);
             clientSocket.close();
         }
@@ -72,14 +93,20 @@ public class ClientRunnable implements Runnable, Observer {
     @SneakyThrows
     private void registration(String messageFromUser) {
         if (dao.findByName(messageFromUser.split(" ")[1]) != null) {
-            System.out.println("Registration for " + messageFromUser.split(" ")[1] + " failed");
-            notifyObserver("Registration failed: wrong name");
+            System.out.println(RESOURCE_BUNDLE.getValue("registration_for") + " " + messageFromUser.split(" ")[1] + " " + RESOURCE_BUNDLE.getValue("failed"));
+//            System.out.println("Registration_for " + messageFromUser.split(" ")[1] + " failed");
+            notifyObserver(RESOURCE_BUNDLE.getValue("reg_f_w_n"));
+            LOGGER.warn("Registration for failed: wrong name");
+//            notifyObserver("Registration failed: wrong name");
             server.deleteObserver(this);
             clientSocket.close();
         } else {
             client = new User(messageFromUser.split(" ")[1], messageFromUser.split(" ")[2]);
-            System.out.println("Registration for " + client.getName() + " success");
-            notifyObserver("Registration for " + client.getName() + " success");
+            System.out.println(RESOURCE_BUNDLE.getValue("registration_for") + " " + client.getName() + " " + RESOURCE_BUNDLE.getValue("successful"));
+//            System.out.println("Registration for " + client.getName() + " success");
+            notifyObserver(RESOURCE_BUNDLE.getValue("registration_for") + " " + client.getName() + " " + RESOURCE_BUNDLE.getValue("successful"));
+            LOGGER.info("Registration for " + client.getName() + " success");
+//            notifyObserver("Registration for " + client.getName() + " success");
             dao.createUser(client);
         }
     }
